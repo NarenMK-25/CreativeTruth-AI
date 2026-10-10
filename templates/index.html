@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CreativeTruth AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .nav-link.active { background-color: #4f46e5; color: white; }
+        .nav-link { transition: all 0.2s ease-in-out; }
+        .nav-link:hover:not(.active) { background-color: #1e293b; color: white; }
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .stat-card { transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-2px); }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 h-screen flex overflow-hidden">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="w-72 bg-slate-900 text-slate-300 flex flex-col h-full shadow-xl z-20">
+        <div class="p-6 border-b border-slate-800">
+            <div class="flex items-center gap-3">
+                <div class="bg-indigo-500 text-white p-2 rounded-lg"><i class="fa-solid fa-layer-group"></i></div>
+                <div>
+                    <h1 class="text-xl font-bold text-white tracking-tight">CreativeTruth AI</h1>
+                    <p class="text-[10px] uppercase tracking-widest text-indigo-400 mt-1 font-semibold">Beyond Guesswork</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="p-4">
+            <button id="runBtn" onclick="runAnalysis()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-3 px-4 rounded-xl transition duration-200 shadow-lg shadow-indigo-900/50 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-play text-sm"></i> Run Complete Analysis
+            </button>
+            <div id="loader" class="mt-4 text-sm text-indigo-300 hidden flex items-center justify-center gap-2 bg-slate-800 p-2 rounded-lg">
+                <i class="fa-solid fa-circle-notch fa-spin"></i> Processing Assets...
+            </div>
+            <div id="error-msg" class="mt-4 text-sm text-red-400 hidden bg-red-900/20 p-3 rounded-lg border border-red-800/50"></div>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto py-2 px-3 space-y-1" id="nav-menu">
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 mt-4 px-3">Dashboards</div>
+            <a href="#" onclick="showSection('sec-overview')" class="nav-link active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium">
+                <i class="fa-solid fa-chart-pie w-5"></i> Executive Overview
+            </a>
+            <a href="#" onclick="showSection('sec-dna')" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium">
+                <i class="fa-solid fa-fingerprint w-5"></i> Creative DNA Explorer
+            </a>
+            <a href="#" onclick="showSection('sec-comp')" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium">
+                <i class="fa-solid fa-chess-knight w-5"></i> Competitive Intelligence
+            </a>
+            
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 mt-6 px-3">Evidence & Optimization</div>
+            <a href="#" onclick="showSection('sec-patterns')" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium">
+                <i class="fa-solid fa-magnifying-glass-chart w-5"></i> Pattern Discovery
+            </a>
+            <a href="#" onclick="showSection('sec-illusions')" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium">
+                <i class="fa-solid fa-triangle-exclamation w-5"></i> Illusion Detector
+            </a>
+            <a href="#" onclick="showSection('sec-experiments')" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium">
+                <i class="fa-solid fa-flask w-5"></i> Experiment Lab
+            </a>
+            <a href="#" onclick="showSection('sec-launch')" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium">
+                <i class="fa-solid fa-rocket w-5"></i> Launch Advisor
+            </a>
+            
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 mt-6 px-3">Reporting</div>
+            <a href="#" onclick="showSection('sec-brief')" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium">
+                <i class="fa-solid fa-file-invoice w-5"></i> Creative Brief Generator
+            </a>
+            <a href="#" onclick="showSection('sec-evidence')" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium">
+                <i class="fa-solid fa-scale-balanced w-5"></i> Evidence Center
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto bg-slate-50/50 relative">
+        <div id="welcome-screen" class="absolute inset-0 flex flex-col items-center justify-center text-slate-400">
+            <i class="fa-solid fa-chart-network text-6xl mb-6 text-slate-300"></i>
+            <h2 class="text-2xl font-semibold text-slate-600 mb-2">Ready for Analysis</h2>
+            <p class="max-w-md text-center text-sm">Load the PS-02 dataset from the sidebar to extract visual attributes, calculate statistics, and generate evidence-based marketing intelligence.</p>
+        </div>
+
+        <div id="content-container" class="hidden max-w-7xl mx-auto p-8 pb-20">
+            
+            <!-- 1. EXECUTIVE OVERVIEW -->
+            <div id="sec-overview" class="view-section block">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-slate-800">Executive Overview</h2>
+                    <p class="text-slate-500 mt-1">High-level campaign performance and integrity gate metrics.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="glass-card stat-card p-6 rounded-2xl shadow-sm border border-slate-200/60">
+                        <div class="flex items-center gap-4">
+                            <div class="p-3 bg-emerald-100 text-emerald-600 rounded-xl"><i class="fa-solid fa-dollar-sign text-xl"></i></div>
+                            <div>
+                                <p class="text-sm font-medium text-slate-500">Total Spend</p>
+                                <p class="text-2xl font-bold text-slate-900" id="val-spend">$0</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="glass-card stat-card p-6 rounded-2xl shadow-sm border border-slate-200/60">
+                        <div class="flex items-center gap-4">
+                            <div class="p-3 bg-blue-100 text-blue-600 rounded-xl"><i class="fa-solid fa-eye text-xl"></i></div>
+                            <div>
+                                <p class="text-sm font-medium text-slate-500">Impressions</p>
+                                <p class="text-2xl font-bold text-slate-900" id="val-impressions">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="glass-card stat-card p-6 rounded-2xl shadow-sm border border-slate-200/60">
+                        <div class="flex items-center gap-4">
+                            <div class="p-3 bg-purple-100 text-purple-600 rounded-xl"><i class="fa-solid fa-bolt text-xl"></i></div>
+                            <div>
+                                <p class="text-sm font-medium text-slate-500">Conversions</p>
+                                <p class="text-2xl font-bold text-slate-900" id="val-conversions">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="glass-card stat-card p-6 rounded-2xl shadow-sm border border-slate-200/60">
+                        <div class="flex items-center gap-4">
+                            <div class="p-3 bg-orange-100 text-orange-600 rounded-xl"><i class="fa-solid fa-chart-line text-xl"></i></div>
+                            <div>
+                                <p class="text-sm font-medium text-slate-500">Avg CPA</p>
+                                <p class="text-2xl font-bold text-slate-900" id="val-cpa">$0.00</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-indigo-50 border border-indigo-100 p-6 rounded-2xl shadow-sm flex items-start gap-4">
+                    <div class="bg-indigo-100 p-2 rounded-full text-indigo-600 mt-1"><i class="fa-solid fa-shield-check"></i></div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-indigo-900">Integrity Gate Results</h3>
+                        <p class="text-indigo-700 mt-1" id="val-gate">Processing...</p>
+                        <p class="text-sm text-indigo-600/80 mt-2">Only accepted images are forwarded to downstream intelligence modules. Rejected images are excluded from pattern discovery.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. CREATIVE DNA -->
+            <div id="sec-dna" class="view-section hidden">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-slate-800">Creative DNA Explorer</h2>
+                    <p class="text-slate-500 mt-1">Visual attributes automatically extracted via OpenCV.</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="font-semibold text-slate-700 mb-4">Brightness vs Contrast Distribution</h3>
+                    <div class="h-[400px]">
+                        <canvas id="dnaChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. COMPETITIVE -->
+            <div id="sec-comp" class="view-section hidden">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-slate-800">Competitive Intelligence</h2>
+                    <p class="text-slate-500 mt-1">Fair brand comparison across analyzed creatives.</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="font-semibold text-slate-700 mb-4">Brand Performance (Average CVR %)</h3>
+                    <div class="h-[400px]">
+                        <canvas id="brandChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. PATTERNS -->
+            <div id="sec-patterns" class="view-section hidden">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-slate-800">Pattern Discovery & Evidence Debt</h2>
+                    <p class="text-slate-500 mt-1">Ranked attributes associated with performance differences. Assessed for statistical evidence.</p>
+                </div>
+                <div id="patterns-container" class="space-y-4">
+                    <!-- Dynamic Cards Injected Here -->
+                </div>
+            </div>
+
+            <!-- 5. ILLUSIONS -->
+            <div id="sec-illusions" class="view-section hidden">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-slate-800">Creative Illusion Detector</h2>
+                    <p class="text-slate-500 mt-1">Identifying attention-to-conversion mismatches (High CTR, Low CVR).</p>
+                </div>
+                <div id="illusions-container">
+                    <!-- Dynamic Table Injected Here -->
+                </div>
+            </div>
+
+            <!-- 6. EXPERIMENT LAB -->
+            <div id="sec-experiments" class="view-section hidden">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-slate-800">Creative Counterfactual Lab</h2>
+                    <p class="text-slate-500 mt-1">Data-backed hypotheses for future controlled A/B testing.</p>
+                </div>
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-bold tracking-wider">EXP-001</span>
+                        <h3 class="text-xl font-bold text-slate-800">Optimize Visual Complexity</h3>
+                    </div>
+                    <div class="grid grid-cols-2 gap-8 mb-6">
+                        <div class="bg-slate-50 p-6 rounded-xl border border-slate-200">
+                            <h4 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Original</h4>
+                            <p class="text-slate-800 font-medium">Standard or High visual complexity layout with dense elements.</p>
+                        </div>
+                        <div class="bg-emerald-50 p-6 rounded-xl border border-emerald-200 relative overflow-hidden">
+                            <div class="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg">PROPOSED VARIANT</div>
+                            <h4 class="text-sm font-bold text-emerald-700 uppercase tracking-wider mb-2">Variant</h4>
+                            <p class="text-emerald-900 font-medium">Reduce background complexity and text density by 50%. Keep primary product focal point identical.</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-8 border-t border-slate-100 pt-6">
+                        <div>
+                            <p class="text-xs text-slate-500 uppercase font-semibold">Primary Metric</p>
+                            <p class="text-lg font-bold text-slate-800">CVR</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500 uppercase font-semibold">Guardrail Metric</p>
+                            <p class="text-lg font-bold text-slate-800">CPA (Max +10%)</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500 uppercase font-semibold">Evidence Basis</p>
+                            <p class="text-sm font-medium text-slate-700 mt-1">Derived from Pattern Discovery Engine.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. LAUNCH ADVISOR -->
+            <div id="sec-launch" class="view-section hidden">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-slate-800">Launch Window Advisor</h2>
+                    <p class="text-slate-500 mt-1">Evaluating historical demand and seasonality constraints.</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-6">
+                    <h3 class="font-semibold text-slate-700 mb-2" id="val-launch-msg">Checking data availability...</h3>
+                    <div class="h-[300px] mt-6">
+                        <canvas id="launchChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 8. CREATIVE BRIEF -->
+            <div id="sec-brief" class="view-section hidden">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-slate-800">Creative Brief Generator</h2>
+                    <p class="text-slate-500 mt-1">Actionable instructions for the design team based on verified findings.</p>
+                </div>
+                <div class="bg-white p-10 rounded-2xl shadow-lg border border-slate-200 max-w-4xl mx-auto">
+                    <div class="border-b border-slate-200 pb-6 mb-6 flex justify-between items-end">
+                        <div>
+                            <p class="text-indigo-600 font-bold tracking-wider text-sm uppercase mb-1">Campaign Strategy Brief</p>
+                            <h3 class="text-3xl font-black text-slate-900">Q4 Performance Optimization</h3>
+                        </div>
+                        <p class="text-slate-500 text-sm font-medium">Generated by CreativeTruth AI</p>
+                    </div>
+                    
+                    <div class="space-y-8">
+                        <div>
+                            <h4 class="text-lg font-bold text-slate-800 mb-3 border-l-4 border-indigo-500 pl-3">The Objective</h4>
+                            <p class="text-slate-600 leading-relaxed">Improve overall CVR and reduce CPA across core acquisition campaigns. Current data indicates a high volume of clicks are failing to convert due to creative-to-landing-page mismatches and visual noise.</p>
+                        </div>
+
+                        <div>
+                            <h4 class="text-lg font-bold text-slate-800 mb-3 border-l-4 border-emerald-500 pl-3">Evidence-Backed Directives</h4>
+                            <ul class="space-y-3">
+                                <li class="flex gap-3">
+                                    <i class="fa-solid fa-circle-check text-emerald-500 mt-1"></i>
+                                    <div>
+                                        <strong class="text-slate-800">Simplify Visual Complexity:</strong> 
+                                        <span class="text-slate-600">Pattern discovery shows simpler layouts have a statistically significant advantage in conversion rates.</span>
+                                    </div>
+                                </li>
+                                <li class="flex gap-3">
+                                    <i class="fa-solid fa-circle-check text-emerald-500 mt-1"></i>
+                                    <div>
+                                        <strong class="text-slate-800">Address the Illusion:</strong> 
+                                        <span class="text-slate-600">High-text density drives clicks but damages final conversion. Ensure the offer in the image matches the landing page explicitly.</span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-slate-50 p-6 rounded-xl border border-slate-200">
+                            <h4 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Required Deliverables for Next Batch</h4>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-white p-4 rounded border border-slate-200">
+                                    <p class="font-bold text-slate-800">2x Baseline Variations</p>
+                                    <p class="text-xs text-slate-500 mt-1">Retaining current brand colors and product prominence.</p>
+                                </div>
+                                <div class="bg-white p-4 rounded border border-slate-200">
+                                    <p class="font-bold text-slate-800">2x Complexity Counterfactuals</p>
+                                    <p class="text-xs text-slate-500 mt-1">Drastically reduced background elements (EXP-001).</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 9. EVIDENCE CENTER -->
+            <div id="sec-evidence" class="view-section hidden">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-slate-800">Evidence Center & Methodology</h2>
+                    <p class="text-slate-500 mt-1">How CreativeTruth AI calculates confidence without hallucinating scores.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-l-emerald-500">
+                        <h3 class="font-bold text-slate-800 text-lg">SUPPORTED</h3>
+                        <p class="text-slate-600 mt-2 text-sm">P-value < 0.05 and adequate sample size (N ≥ 3 per group). Evidence reliably supports the stated association under current assumptions.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-l-yellow-500">
+                        <h3 class="font-bold text-slate-800 text-lg">PRELIMINARY</h3>
+                        <p class="text-slate-600 mt-2 text-sm">P-value < 0.15. A directional signal exists, but statistical uncertainty remains. Recommended for A/B testing rather than immediate scaling.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-l-slate-400">
+                        <h3 class="font-bold text-slate-800 text-lg">NO CLEAR ASSOCIATION</h3>
+                        <p class="text-slate-600 mt-2 text-sm">P-value ≥ 0.15. The available data does not establish a clear difference between the groups. This does not prove no effect exists, only that current data cannot prove it.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-l-red-400">
+                        <h3 class="font-bold text-slate-800 text-lg">INSUFFICIENT DATA</h3>
+                        <p class="text-slate-600 mt-2 text-sm">N < 3 per group. Not enough suitable information to assess the claim safely. Requires more accepted creatives.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        let dnaChart, brandChart, launchChart;
+
+        function showSection(id) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        }
+
+        async function runAnalysis() {
+            const btn = document.getElementById('runBtn');
+            btn.disabled = true;
+            btn.classList.add('opacity-50');
+            document.getElementById('loader').classList.remove('hidden');
+            document.getElementById('error-msg').classList.add('hidden');
+            
+            try {
+                const res = await fetch('/api/analyze');
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Analysis failed.');
+
+                document.getElementById('welcome-screen').classList.add('hidden');
+                document.getElementById('content-container').classList.remove('hidden');
+
+                // Overview
+                document.getElementById('val-spend').innerText = '$' + data.overview.spend.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                document.getElementById('val-impressions').innerText = data.overview.impressions.toLocaleString();
+                document.getElementById('val-conversions').innerText = data.overview.conversions.toLocaleString();
+                document.getElementById('val-cpa').innerText = '$' + data.overview.cpa.toFixed(2);
+                document.getElementById('val-gate').innerText = `${data.overview.accepted} images accepted, ${data.overview.rejected} images rejected.`;
+
+                // DNA Chart
+                if(dnaChart) dnaChart.destroy();
+                dnaChart = new Chart(document.getElementById('dnaChart'), {
+                    type: 'scatter',
+                    data: {
+                        datasets: [{
+                            label: 'Creatives (Brightness vs Contrast)',
+                            data: data.dna_list.map(d => ({x: d.brightness, y: d.contrast})),
+                            backgroundColor: '#6366f1'
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+
+                // Brand Chart
+                if(brandChart) brandChart.destroy();
+                brandChart = new Chart(document.getElementById('brandChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: data.brands.map(b => b.brand),
+                        datasets: [{
+                            label: 'Average CVR (%)',
+                            data: data.brands.map(b => b.cvr),
+                            backgroundColor: '#3b82f6',
+                            borderRadius: 6
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+
+                // Patterns
+                const patContainer = document.getElementById('patterns-container');
+                patContainer.innerHTML = '';
+                data.patterns.forEach(p => {
+                    let colorClass = "bg-slate-100 text-slate-800 border-slate-200";
+                    let icon = "fa-circle-question";
+                    if(p.status === "SUPPORTED") { colorClass = "bg-emerald-50 text-emerald-900 border-emerald-200"; icon="fa-circle-check text-emerald-500"; }
+                    if(p.status === "PRELIMINARY") { colorClass = "bg-yellow-50 text-yellow-900 border-yellow-200"; icon="fa-triangle-exclamation text-yellow-500"; }
+                    if(p.status === "INSUFFICIENT DATA") { colorClass = "bg-red-50 text-red-900 border-red-200"; icon="fa-circle-xmark text-red-400"; }
+                    
+                    let effectStr = p.effect_size > 0 ? `+${p.effect_size.toFixed(2)}%` : `${p.effect_size.toFixed(2)}%`;
+                    if(p.status === "INSUFFICIENT DATA") effectStr = "N/A";
+
+                    patContainer.innerHTML += `
+                    <div class="${colorClass} p-6 rounded-2xl border shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <i class="fa-solid ${icon}"></i>
+                                <span class="font-bold tracking-wider text-xs uppercase opacity-80">${p.status}</span>
+                            </div>
+                            <h3 class="text-lg font-bold mb-1">${p.attribute}</h3>
+                            <p class="text-sm opacity-80">${p.message}</p>
+                        </div>
+                        <div class="flex items-center gap-8 bg-white/60 p-4 rounded-xl border border-white/40">
+                            <div class="text-center">
+                                <p class="text-[10px] uppercase font-bold tracking-wider opacity-70 mb-1">Sample Size</p>
+                                <p class="text-sm font-semibold">High: ${p.n_high} | Low: ${p.n_low}</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-[10px] uppercase font-bold tracking-wider opacity-70 mb-1">Effect Size</p>
+                                <p class="text-xl font-black">${effectStr}</p>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+
+                // Illusions
+                const illContainer = document.getElementById('illusions-container');
+                if(data.illusions.length === 0) {
+                    illContainer.innerHTML = `<div class="bg-emerald-50 text-emerald-800 p-6 rounded-xl border border-emerald-200 font-medium"><i class="fa-solid fa-check-circle mr-2"></i> No significant attention-to-conversion mismatches detected.</div>`;
+                } else {
+                    let rows = data.illusions.map(i => `
+                        <tr class="border-b border-slate-100 hover:bg-slate-50">
+                            <td class="py-3 px-4 text-sm font-medium">${i.filename}</td>
+                            <td class="py-3 px-4 text-sm">${i.brand}</td>
+                            <td class="py-3 px-4 text-sm font-bold text-blue-600">${i.ctr.toFixed(2)}%</td>
+                            <td class="py-3 px-4 text-sm font-bold text-red-500">${i.cvr.toFixed(2)}%</td>
+                            <td class="py-3 px-4 text-xs text-slate-500">${i.hypothesis}</td>
+                        </tr>`).join('');
+                    illContainer.innerHTML = `
+                    <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 mb-6 rounded-r-lg">
+                        <p class="text-yellow-800 font-bold"><i class="fa-solid fa-warning mr-2"></i> ${data.illusions.length} Creative Illusions Detected</p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50 border-b border-slate-200 text-xs uppercase text-slate-500 font-semibold">
+                                <tr><th class="py-3 px-4">Filename</th><th class="py-3 px-4">Brand</th><th class="py-3 px-4">CTR (High)</th><th class="py-3 px-4">CVR (Low)</th><th class="py-3 px-4">Hypothesis</th></tr>
+                            </thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>`;
+                }
+
+                // Launch Advisor
+                document.getElementById('val-launch-msg').innerText = data.launch.message;
+                if(launchChart) launchChart.destroy();
+                if(data.launch.labels.length > 0) {
+                    launchChart = new Chart(document.getElementById('launchChart'), {
+                        type: 'line',
+                        data: {
+                            labels: data.launch.labels,
+                            datasets: [{
+                                label: 'Conversions by Month',
+                                data: data.launch.values,
+                                borderColor: '#8b5cf6',
+                                backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                                fill: true,
+                                tension: 0.4
+                            }]
+                        },
+                        options: { responsive: true, maintainAspectRatio: false }
+                    });
+                }
+
+            } catch (e) {
+                document.getElementById('error-msg').innerText = e.message;
+                document.getElementById('error-msg').classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50');
+                document.getElementById('loader').classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
